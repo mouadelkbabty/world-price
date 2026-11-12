@@ -1,0 +1,13 @@
+{
+  "name": "prixmonde",
+  "version": "0.1.0",
+  "description": "Compare le prix d'un même produit entre les sites européens d'une même enseigne (Amazon, eBay).",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  }
+}
