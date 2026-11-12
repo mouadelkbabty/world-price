@@ -1,5 +1,5 @@
-import { MARKETS } from '../markets.js';
-import { demoSearch, demoProduct, demoPrice } from '../demo.js';
+import { MARKETS } from './markets.js';
+import { demoItems, demoOffer, demoProduct } from './demo.js';
 
 // Amazon : les prix réels ne peuvent venir que de l'API officielle d'Amazon
 // (Creators API, réservée aux comptes Partenaires). Tant qu'elle n'est pas
@@ -33,16 +33,12 @@ export const amazon = {
   },
 
   async search(query) {
-    return demoSearch(query).map((p) => ({ id: p.id, title: p.title, icon: p.icon, hue: p.hue, demo: true }));
+    return demoItems(query);
   },
 
   async offer(id, market) {
-    const demo = demoProduct(id);
-    if (demo) {
-      const price = demoPrice(demo, market.id);
-      const url = searchUrl(market, demo.title[market.id === 'uk' ? 'en' : 'fr']);
-      return price ? { status: 'ok', price, url, demo: true } : { status: 'unavailable', url, demo: true };
-    }
+    const demo = demoOffer(id, market, searchUrl);
+    if (demo) return demo;
     if (ASIN.test(id)) return { status: 'link', url: productUrl(market, id) };
     return { status: 'error' };
   },

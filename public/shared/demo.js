@@ -52,3 +52,16 @@ export function demoPrice(product, marketId, salt = '') {
   if (marketId === 'uk') return { amount: Math.round(eur * GBP_PER_EUR) - 0.01, currency: 'GBP' };
   return { amount: Math.round(eur) - 0.01, currency: 'EUR' };
 }
+
+/** Résultats de recherche démo, au format commun des enseignes. */
+export const demoItems = (query) =>
+  demoSearch(query).map((p) => ({ id: p.id, title: p.title, icon: p.icon, hue: p.hue, demo: true }));
+
+/** Offre démo d'un produit sur un marché, ou null si `id` n'est pas un produit de démo. */
+export function demoOffer(id, market, searchUrl, salt = '') {
+  const product = demoProduct(id);
+  if (!product) return null;
+  const price = demoPrice(product, market.id, salt);
+  const url = searchUrl(market, product.title[market.id === 'uk' ? 'en' : 'fr']);
+  return price ? { status: 'ok', price, url, demo: true } : { status: 'unavailable', url, demo: true };
+}

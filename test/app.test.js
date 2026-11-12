@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseAsin, amazon } from '../src/providers/amazon.js';
+import { parseAsin, amazon } from '../public/shared/amazon.js';
 import { ebay } from '../src/providers/ebay.js';
-import { demoSearch, demoProduct, demoPrice } from '../src/demo.js';
+import { demoSearch, demoProduct, demoPrice } from '../public/shared/demo.js';
 import { toEur } from '../src/fx.js';
-import { MARKETS } from '../src/markets.js';
+import { MARKETS } from '../public/shared/markets.js';
 import { server } from '../server.js';
 
 test('parseAsin lit un ASIN brut ou une URL Amazon', () => {
@@ -78,4 +78,12 @@ test('API HTTP : config, recherche, offre, erreurs et fichiers statiques', async
   assert.equal((await fetch(base + '/')).headers.get('content-type'), 'text/html; charset=utf-8');
   assert.equal((await get('/..%2Fpackage.json')).status, 403);
   assert.equal((await get('/missing.js')).status, 404);
+});
+
+test('version statique : mêmes réponses que le serveur, sans réseau', async () => {
+  const { localApi } = await import('../public/local-api.js');
+  assert.equal((await localApi('config', {})).providers.length, 2);
+  assert.equal((await localApi('search', { provider: 'ebay', q: 'ssd' })).items[0].id, 'DEMO000007');
+  const offer = await localApi('offer', { provider: 'amazon', id: 'DEMO000002', market: 'de' });
+  assert.ok(offer.status === 'ok' ? offer.eur > 0 : offer.status === 'unavailable');
 });

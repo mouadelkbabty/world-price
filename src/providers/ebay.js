@@ -1,14 +1,10 @@
-import { MARKETS } from '../markets.js';
-import { demoSearch, demoProduct, demoPrice } from '../demo.js';
+import { ebayDemo, ebaySearchUrl as searchUrl } from '../../public/shared/ebay-demo.js';
 
 // eBay : API officielle "Browse" (clés gratuites sur developer.ebay.com).
 // Avec EBAY_CLIENT_ID / EBAY_CLIENT_SECRET, les prix sont réels ; sinon, démo.
 const API = 'https://api.ebay.com';
 const { EBAY_CLIENT_ID: ID, EBAY_CLIENT_SECRET: SECRET } = process.env;
 const live = Boolean(ID && SECRET);
-
-const domain = (m) => `www.ebay.${m.tld}`;
-const searchUrl = (m, q) => `https://${domain(m)}/sch/i.html?_nkw=${encodeURIComponent(q)}`;
 
 let token = { value: null, expires: 0 };
 
@@ -51,20 +47,11 @@ function decodeId(id) {
   }
 }
 
-export const ebay = {
-  id: 'ebay',
-  name: 'eBay',
-  live,
-  markets: MARKETS.map((m) => ({ id: m.id, domain: `ebay.${m.tld}`, currency: m.currency })),
-
-  resolve() {
-    return null;
-  },
+const ebayLive = {
+  ...ebayDemo,
+  live: true,
 
   async search(query, market) {
-    if (!live) {
-      return demoSearch(query).map((p) => ({ id: p.id, title: p.title, icon: p.icon, hue: p.hue, demo: true }));
-    }
     const items = await browse(market, { q: query, limit: '12' });
     return items.map((it) => ({
       id: encodeId(it.epid ? { epid: it.epid, q: it.title } : { q: it.title }),
@@ -75,14 +62,8 @@ export const ebay = {
   },
 
   async offer(id, market) {
-    const demo = demoProduct(id);
-    if (demo) {
-      const price = demoPrice(demo, market.id, 'ebay');
-      const url = searchUrl(market, demo.title[market.id === 'uk' ? 'en' : 'fr']);
-      return price ? { status: 'ok', price, url, demo: true } : { status: 'unavailable', url, demo: true };
-    }
     const ref = decodeId(id);
-    if (!live || !ref) return { status: 'error' };
+    if (!ref) return { status: 'error' };
     // Offre neuve à prix fixe la moins chère pour ce produit sur ce marché.
     const query = ref.epid ? { epid: ref.epid } : { q: ref.q };
     const [best] = await browse(market, { ...query, sort: 'price', limit: '1' });
@@ -94,3 +75,5 @@ export const ebay = {
     };
   },
 };
+
+export const ebay = live ? ebayLive : ebayDemo;

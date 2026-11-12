@@ -1,10 +1,11 @@
 // Taux de change vers l'euro. On démarre sur une valeur de secours (marquée
 // "approx") et on la remplace par le taux BCE dès qu'il est disponible, sans
 // jamais faire attendre une requête utilisateur.
-const FALLBACK = { EUR: 1, GBP: 1.15 };
+import { FALLBACK_RATES, toEur as convert } from '../public/shared/money.js';
+
 const REFRESH_MS = 12 * 60 * 60 * 1000;
 
-let state = { rates: { ...FALLBACK }, approx: true, date: null };
+let state = { rates: { ...FALLBACK_RATES }, approx: true, date: null };
 
 async function refresh() {
   try {
@@ -27,8 +28,4 @@ export function startFx() {
 
 export const getFx = () => state;
 
-export function toEur(amount, currency, rates = state.rates) {
-  const rate = rates[currency];
-  if (!rate || !Number.isFinite(amount)) return null;
-  return Math.round(amount * rate * 100) / 100;
-}
+export const toEur = (amount, currency, rates = state.rates) => convert(amount, currency, rates);

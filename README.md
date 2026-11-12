@@ -34,20 +34,36 @@ Le mode démo utilise des produits génériques et des **prix fictifs** ; l'inte
 l'indique toujours. L'app ne récupère pas les pages des marchands : elle ne passe
 que par leurs API officielles.
 
+## Démo en ligne
+
+<https://mouadelkbabty.github.io/world-price/>
+
+C'est la version statique : sans serveur, l'app bascule seule en mode démo dans
+le navigateur. Pour la mettre à jour après un changement dans `public/` :
+
+```bash
+npm run deploy
+```
+
+Les prix réels (clés d'API) demandent le serveur Node, donc un hébergeur qui
+exécute `npm start` (Render, Railway, Fly.io…).
+
 ## Structure
 
 ```
-server.js               serveur HTTP + API JSON (/api/config, /api/search, /api/offer)
-src/markets.js          les cinq marchés
+server.js               serveur HTTP : fichiers statiques + API JSON sous /api
 src/fx.js               taux £ → € (BCE via frankfurter.dev, valeur de secours sinon)
-src/demo.js             catalogue et prix de démonstration
-src/providers/          une enseigne = un fichier (amazon.js, ebay.js)
+src/providers/ebay.js   eBay en direct (API officielle, côté serveur uniquement)
 public/                 interface (HTML, CSS, modules JS — sans étape de build)
+public/shared/          logique commune au serveur et au navigateur :
+                        marchés, routes de l'API, démo, Amazon, eBay démo
+public/local-api.js     les mêmes routes, appelées sans serveur
 test/                   tests (node --test)
 ```
 
-Ajouter une enseigne : créer `src/providers/<nom>.js` avec `id`, `name`, `live`,
-`markets`, `resolve()`, `search()` et `offer()`, puis l'enregistrer dans `server.js`.
+Ajouter une enseigne : écrire un objet avec `id`, `name`, `live`, `markets`,
+`resolve()`, `search()` et `offer()`, puis l'enregistrer dans `server.js`
+(et dans `public/local-api.js` s'il a un mode démo).
 
 ## Limites
 
