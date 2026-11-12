@@ -11,8 +11,13 @@ const FLAGS = {
 };
 const REGION = { fr: 'FR', de: 'DE', it: 'IT', es: 'ES', uk: 'GB' };
 
+const store = {
+  get: (key) => { try { return localStorage.getItem(key); } catch { return null; } },
+  set: (key, value) => { try { localStorage.setItem(key, value); } catch { /* stockage indisponible */ } },
+};
+
 const state = {
-  lang: localStorage.getItem('lang') ?? (navigator.language?.startsWith('fr') ? 'fr' : 'en'),
+  lang: store.get('lang') ?? (navigator.language?.startsWith('fr') ? 'fr' : 'en'),
   config: null,
   provider: null,
   items: [],
@@ -43,8 +48,21 @@ const money = (amount, currency) =>
 const titleOf = (item) =>
   typeof item.title === 'string' ? item.title : item.title?.[state.lang] ?? t('productRef', { id: item.id });
 const countryName = (id) => new Intl.DisplayNames(locale(), { type: 'region' }).of(REGION[id]);
-const api = (path, params, signal) =>
-  fetch(`${path}?${new URLSearchParams(params)}`, { signal }).then((r) => r.json());
+// On parle au serveur s'il existe ; sur un hébergement statique (pas d'API),
+// on bascule une fois pour toutes sur la version locale, en mode démo.
+let serverless = false;
+async function api(name, params, signal) {
+  if (!serverless) {
+    try {
+      const res = await fetch(`api/${name}?${new URLSearchParams(params)}`, { signal });
+      if (res.headers.get('content-type')?.includes('json')) return await res.json();
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+    }
+    serverless = true;
+  }
+  return (await import('./local-api.js')).localApi(name, params);
+}
 
 function thumb(item, el = h('div', { class: 'thumb' })) {
   el.style.setProperty('--hue', item.hue ?? 212);
@@ -98,7 +116,7 @@ async function search({ open = false } = {}) {
     const data =
       !query && p.live
         ? { items: [] }
-        : await api('/api/search', { provider: p.id, q: query, market: state.lang === 'fr' ? 'fr' : 'uk' }, searchAbort.signal);
+        : await api('search', { provider: p.id, q: query, market: state.lang === 'fr' ? 'fr' : 'uk' }, searchAbort.signal);
     state.query = query;
     state.items = data.direct ? [{ ...data.direct, icon: '🔗' }] : data.items ?? [];
     state.failed = Boolean(data.error);
@@ -150,7 +168,7 @@ function openCompare(item, origin) {
   showSheet();
   // Un appel par pays, en parallèle : chaque prix s'affiche dès qu'il arrive.
   for (const m of p.markets) {
-    api('/api/offer', { provider: p.id, id: item.id, market: m.id })
+    api('offer', { provider: p.id, id: item.id, market: m.id })
       .catch(() => ({ status: 'error' }))
       .then((offer) => {
         if (token !== compareToken) return;
@@ -323,7 +341,7 @@ addEventListener('keydown', (e) => e.key === 'Escape' && hideSheet());
 // ——— Démarrage ———
 function setProvider(id) {
   state.provider = state.config.providers.find((p) => p.id === id) ?? state.config.providers[0];
-  localStorage.setItem('provider', state.provider.id);
+  store.set('provider', state.provider.id);
   renderChrome();
   search();
 }
@@ -342,7 +360,7 @@ $('langs').addEventListener('click', (e) => {
   const lang = e.target.closest('button')?.dataset.lang;
   if (!lang || lang === state.lang) return;
   state.lang = lang;
-  localStorage.setItem('lang', lang);
+  store.set('lang', lang);
   renderChrome();
   renderResults();
   if (state.compare) {
@@ -353,10 +371,10 @@ $('langs').addEventListener('click', (e) => {
 addEventListener('resize', () => document.querySelectorAll('.segmented').forEach(moveThumb));
 
 renderChrome();
-state.config = await api('/api/config', {});
+state.config = await api('config', {});
 $('providers').replaceChildren(
   ...state.config.providers.map((p) =>
     h('button', { type: 'button', role: 'tab', 'data-id': p.id, onclick: () => setProvider(p.id) }, p.name),
   ),
 );
-setProvider(localStorage.getItem('provider'));
+setProvider(store.get('provider'));
