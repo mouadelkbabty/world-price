@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Prixmonde</title>
+  <meta name="description" content="Le même produit, cinq pays, le meilleur prix.">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div id="page">
+    <header class="nav">
+      <a class="brand" href="/" aria-label="Prixmonde">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 12h20M12 2c3 3.2 3 16.800 0 20M12 2c-3 3.2-3 16.800 0 20" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span>Prixmonde</span>
+      </a>
+      <div class="segmented" id="providers" role="tablist" data-i18n-aria="store"></div>
+      <div class="segmented small" id="langs" role="group" aria-label="Language">
+        <button type="button" data-lang="fr">FR</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h1 data-i18n="headline"></h1>
+        <p class="lede" data-i18n="lede"></p>
+        <form id="search" role="search" autocomplete="off">
+          <svg class="glass" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16.500 16.500 4.500 4.500" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="q" type="search" name="q" enterkeyhint="search" spellcheck="false" data-i18n-aria="searchLabel">
+          <button type="submit" class="go" data-i18n-aria="compare">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </form>
+        <p class="mode" id="mode" hidden></p>
+      </section>
+
+      <section class="results" aria-live="polite">
+        <h2 id="results-title"></h2>
+        <div class="grid" id="grid"></div>
+        <p class="empty" id="empty" hidden></p>
+      </section>
+    </main>
+
+    <footer>
+      <p data-i18n="footnote"></p>
+    </footer>
+  </div>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+    <div class="sheet-head" id="sheet-head">
+      <span class="grabber" aria-hidden="true"></span>
+      <button type="button" class="close" id="close" data-i18n-aria="close">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="product">
+        <div class="thumb" id="sheet-thumb"></div>
+        <div>
+          <h2 id="sheet-title"></h2>
+          <p class="summary" id="summary"></p>
+        </div>
+      </div>
+      <ol class="offers" id="offers"></ol>
+      <p class="note" id="note"></p>
+    </div>
+  </div>
+</body>
+</html>
